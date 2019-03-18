@@ -7,6 +7,7 @@ import java.util.HashMap;
 import com.cj.documentstorage.repository.Document;
 import com.cj.documentstorage.service.StorageService;
 
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 // import org.springframework.web.multipart.MultipartFile;
 import org.apache.commons.text.RandomStringGenerator;
@@ -17,12 +18,8 @@ public class StorageServiceImpl implements StorageService  {
   HashMap<String, Document> documents = new HashMap<String, Document>();
 
   final char [][] pairs = {{'a','z'},{'0','9'}};
-  /**
-   * createDocument
-   * 
-   * returns UUID of created document
-   */
-  public String createDocument(String content, String contentType) {
+
+  public String createDocument(byte[] content, MediaType contentType) {
     RandomStringGenerator rsg = new RandomStringGenerator
     .Builder()
     .withinRange(pairs) 
@@ -37,13 +34,13 @@ public class StorageServiceImpl implements StorageService  {
     return documents.get(documentID);
   }
 
-  public boolean updateDocument(String documentID, String document) {
+  public boolean updateDocument(String documentID, byte[] content, MediaType contentType) {
     Document oldDocument = documents.get(documentID);
     if (oldDocument == null) {
       return false;
     } else {
-      Document newDocument = new Document(oldDocument.getContentType(), document);
-      documents.put(documentID, document);
+      Document newDocument = new Document(contentType, content);
+      documents.put(documentID, newDocument);
       return true;
     }
   }

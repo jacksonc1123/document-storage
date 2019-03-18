@@ -1,8 +1,12 @@
 package com.cj.documentstorage.controller;
 
+import com.cj.documentstorage.repository.Document;
 import com.cj.documentstorage.service.StorageService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -11,57 +15,52 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-// import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-// import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/storage/documents")
 public class StorageController {
 
   @Autowired
-	private StorageService storageService;
+  private StorageService storageService;
 
-  @RequestMapping(method=RequestMethod.POST, consumes=MediaType.ALL_VALUE)
-  public ResponseEntity<String> createDocument(@RequestBody String document, @RequestHeader("content-type") String contentType) {
-    String documentID = storageService.createDocument(document);
-    return new ResponseEntity<>(documentID, HttpStatus.CREATED);
+  private Logger log = LoggerFactory.getLogger(getClass());
+
+  @RequestMapping(method = RequestMethod.POST, consumes = MediaType.ALL_VALUE)
+  public ResponseEntity<?> createDocument(@RequestHeader("Content-Type") MediaType contentType,
+      @RequestBody byte[] content) {
+    log.info("POST request Content-Type: " + contentType.toString());
+    String documentID = storageService.createDocument(content, contentType);
+    return ResponseEntity.status(HttpStatus.CREATED).body(documentID);
   }
 
-  @RequestMapping(value="/{documentID}", method=RequestMethod.GET)
-  public ResponseEntity<String> getDocument(@PathVariable String documentID) {
-    if (documentID == null) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-    String document = storageService.fetchDocument(documentID);
+  @RequestMapping(value = "/{documentID}", method = RequestMethod.GET)
+  public ResponseEntity<?> getDocument(@PathVariable String documentID) {
+    Document document = storageService.fetchDocument(documentID);
     if (document == null) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-    return new ResponseEntity<>(document, HttpStatus.OK);
+    log.info("GET request Content-Type: " + document.getContentType().toString());
+    return ResponseEntity.status(HttpStatus.OK).contentType(document.getContentType()).body(document.getContent());
   }
 
-  @RequestMapping(value="/{documentID}", method=RequestMethod.PUT)
-  public ResponseEntity<String> updateDocument(@PathVariable String documentID, @RequestBody String document) {
-    if (documentID == null) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
-    boolean updateSuccessful = storageService.updateDocument(documentID, document);
+  @RequestMapping(value = "/{documentID}", method = RequestMethod.PUT, consumes = MediaType.ALL_VALUE)
+  public ResponseEntity<?> updateDocument(@PathVariable String documentID,
+      @RequestHeader("Content-Type") MediaType contentType, @RequestBody byte[] content) {
+    boolean updateSuccessful = storageService.updateDocument(documentID, content, contentType);
     if (!updateSuccessful) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
-  @RequestMapping(value="/{documentID}", method=RequestMethod.DELETE)
+  @RequestMapping(value = "/{documentID}", method = RequestMethod.DELETE)
   public ResponseEntity<String> deleteDocument(@PathVariable String documentID) {
-    if (documentID == null) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-    }
     boolean deleteSuccessful = storageService.deleteDocument(documentID);
     if (!deleteSuccessful) {
-      return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+      return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
     }
-    return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
-  
+
 }

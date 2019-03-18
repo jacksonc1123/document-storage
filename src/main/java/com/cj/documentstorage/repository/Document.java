@@ -1,34 +1,36 @@
 package com.cj.documentstorage.repository;
 
+import org.springframework.http.MediaType;
+
 // import org.springframework.web.multipart.MultipartFile;
 
 public class Document {
-  private String contentType;
-  private String document;
+  private MediaType contentType;
+  private byte[] content;
 
   public Document() {
     this.contentType = null;
-    this.document = null;
+    this.content = null;
   }
 
-  public Document(String contentType, String document) {
+  public Document(MediaType contentType, byte[] content) {
     this.contentType = contentType;
-    this.document = document;
+    this.content = content;
   }
 
-  public void setDocument(String document) {
-    this.document = document;
+  public void setContent(byte[] content) {
+    this.content = content;
   }
 
-  public void setContentType(String contentType) {
+  public void setContentType(MediaType contentType) {
     this.contentType = contentType;
   }
 
-  public String getDocument() {
-    return this.document;
+  public byte[] getContent() {
+    return this.content;
   }
 
-  public String getContentType() {
+  public MediaType getContentType() {
     return this.contentType;
   }
 }
